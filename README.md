@@ -1,43 +1,27 @@
 ```mermaid
-flowchart LR
-  %% Entry + DNS
-  User[End user] -->|HTTPS| Route53[Route 53 (flyforward.aero)]
-  Route53 --> ALB[ALB]
+graph TD
+    User[End user] --> Route53[Route 53]
+    Route53 --> ALB[ALB]
 
-  %% Workload VPC
-  subgraph VPC_Workload[Production Workload VPC]
-    ALB -->|HTTP/HTTPS| ASG[ASG EC2 instances]
-    Bastion[Bastion host] -->|SSH| ASG
-  end
+    subgraph Workload_VPC[Production Workload VPC]
+        ALB --> ASG[ASG EC2 instances]
+        Bastion[Bastion host] --> ASG
+    end
 
-  %% DB VPC
-  subgraph VPC_DB[Production DB VPC]
-    RDS[RDS SQL Server]
-  end
+    subgraph DB_VPC[Production DB VPC]
+        ASG --> RDS[RDS SQL Server]
+    end
 
-  %% Network / VPN
-  subgraph Network_VPC[Network VPC]
-    ClientVPN[Client VPN endpoint]
-  end
+    subgraph Network_VPC[Network VPC]
+        ClientVPN[Client VPN endpoint] --> Workload_VPC
+        ClientVPN --> DB_VPC
+    end
 
-  %% Management / AD
-  subgraph Mgmt_VPC[Management VPC]
-    AWSAD[AWS Managed AD]
-  end
+    subgraph Management_VPC[Management VPC]
+        AWSAD[AWS Managed AD] --> RDS
+    end
 
-  %% Connectivity
-  ClientVPN -->|Secure access| VPC_Workload
-  ClientVPN -->|DB access| VPC_DB
-
-  VPC_Workload <-->|TGW/peering| VPC_DB
-  VPC_Workload <-->|TGW/peering| Mgmt_VPC
-
-  %% RDS integrations
-  ASG -->|DB connections| RDS
-  AWSAD -->|Directory integration| RDS
-
-  %% Logging / S3
-  ALB -->|Access logs| S3Logs[S3 logs bucket]
-  RDS -->|Backups| S3Backups[S3 backups bucket]
-  ClientVPN -->|Connection logs| CWLogs[CloudWatch log group]
+    ALB --> S3Logs[S3 logs bucket]
+    RDS --> S3Backups[S3 backups bucket]
+    ClientVPN --> CWLogs[CloudWatch log group]
 ```
