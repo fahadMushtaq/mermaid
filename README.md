@@ -1,3 +1,4 @@
+```mermaid
 flowchart LR
     %% Entry + DNS
     User[End User] -->|HTTPS| Route53[Route 53\nflyforward.aero]
@@ -42,4 +43,5 @@ flowchart LR
     %% Logging / S3
     ALB -->|Access logs| S3Logs[S3 Logs Bucket]
     RDS -->|Backups| S3Backups[S3 RDS Backup Bucket]
-    ClientVPN -->|Connection logs| CWLogs[CloudWatch Log Group]
+    ClientVPN -->|Connection logs| CWLogs[CloudWatch Log Group]]
+```
